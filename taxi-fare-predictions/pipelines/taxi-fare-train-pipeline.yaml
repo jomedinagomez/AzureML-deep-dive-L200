@@ -1,0 +1,79 @@
+$schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
+type: pipeline
+# display_name: nyc_taxi_data_regression #usually better to leave this out tbh so you get unique names. 
+experiment_name: nyc-taxi-pipeline
+description: Train regression model based on nyc taxi dataset
+
+# <inputs_and_outputs>
+outputs: 
+  pipeline_job_trained_model:
+    type: mlflow_model
+    mode: rw_mount
+  pipeline_job_predictions:
+    mode: rw_mount 
+  pipeline_job_score_report:
+    mode: rw_mount
+# </inputs_and_outputs>
+
+settings:
+  default_datastore: azureml:workspaceblobstore
+  default_compute: azureml:cpu-cluster
+  continue_on_step_failure: false
+
+jobs:
+  merge_job:
+    type: command
+    code: ../code/merge_data
+    command: >-
+      python merge_data.py
+      --raw_data_green ${{inputs.raw_data_green}}
+      --raw_data_yellow ${{inputs.raw_data_yellow}}
+      --merged_data ${{outputs.merged_data}}
+    inputs:
+      raw_data_green:
+        type: uri_file 
+        path: azureml:green-taxi-raw:1
+      raw_data_yellow:
+        type: uri_file 
+        path: azureml://subscriptions/14585b9f-5c83-4a76-8055-42149123f99f/resourcegroups/azureml_rg/workspaces/azureml_dev_jamg/datastores/workspaceblobstore/paths/UI/2022-10-31_200904_UTC/yellowTaxiData.csv
+    outputs:
+      merged_data:
+        mode: upload
+    environment: azureml:AzureML-sklearn-1.0-ubuntu20.04-py38-cpu@latest
+
+
+  transform_job:
+    type: command
+    component: ../code/components/transform.yaml
+    inputs:
+      clean_data: ${{parent.jobs.merge_job.outputs.merged_data}}
+    outputs:
+      transformed_data: 
+
+  train_job:
+    type: command
+    component: azureml:train_linear_regression_model@latest
+    inputs:
+      training_data: ${{parent.jobs.transform_job.outputs.transformed_data}}
+      test_split_ratio: 0.3
+    outputs:
+      model_output: ${{parent.outputs.pipeline_job_trained_model}}
+      test_data: 
+  
+  predict_job:
+    type: command
+    component: ../code/components/predict.yaml
+    inputs:
+      model_input: ${{parent.jobs.train_job.outputs.model_output}}
+      test_data: ${{parent.jobs.train_job.outputs.test_data}}
+    outputs:
+      predictions: ${{parent.outputs.pipeline_job_predictions}}
+
+  score_job:
+    type: command
+    component: ../code/components/score.yaml
+    inputs:
+      predictions: ${{parent.jobs.predict_job.outputs.predictions}}
+      model: ${{parent.jobs.train_job.outputs.model_output}}
+    outputs:
+      score_report: ${{parent.outputs.pipeline_job_score_report}}
