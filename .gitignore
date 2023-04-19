@@ -135,6 +135,11 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
+
+.ipynb_aml_checkpoints/ 
+*.amltmp 
+*.amltemp
+
 # Pyre type checker
 .pyre/
 
