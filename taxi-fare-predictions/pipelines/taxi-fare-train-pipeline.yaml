@@ -35,7 +35,7 @@ jobs:
         path: azureml:green-taxi-raw:1
       raw_data_yellow:
         type: uri_file 
-        path: azureml://subscriptions/14585b9f-5c83-4a76-8055-42149123f99f/resourcegroups/azureml_rg/workspaces/azureml_dev_jamg/datastores/workspaceblobstore/paths/UI/2022-10-31_200904_UTC/yellowTaxiData.csv
+        path: azureml://subscriptions/<<YOUR_SUBSCRIPTION>>/resourcegroups/<<YOUR_RG>>/workspaces/<<YOUR_WORKSPACE>>/datastores/workspaceblobstore/paths/Datasets/yellowTaxiData.csv
     outputs:
       merged_data:
         mode: upload
