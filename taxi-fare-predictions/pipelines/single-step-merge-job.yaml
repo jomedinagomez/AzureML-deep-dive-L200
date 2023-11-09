@@ -11,7 +11,7 @@ inputs:
     path: azureml:green-taxi-raw:1
   raw_data_yellow:
     type: uri_file
-    path: azureml://subscriptions/<<YOUR_SUBSCRIPTION>>/resourcegroups/<<YOUR_RG>>/workspaces/<<YOUR_WORKSPACE>>/datastores/workspaceblobstore/paths/Datasets/yellowTaxiData.csv
+    path: azureml://subscriptions//resourcegroups//workspaces//datastores//paths/Datasets/yellowTaxiData.csv
 outputs:
   merged_data:
 environment: azureml:AzureML-sklearn-1.0-ubuntu20.04-py38-cpu@latest
