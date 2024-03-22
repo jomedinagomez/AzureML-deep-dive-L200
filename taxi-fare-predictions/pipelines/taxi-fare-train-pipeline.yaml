@@ -17,7 +17,7 @@ outputs:
 
 settings:
   default_datastore: azureml:workspaceblobstore
-  default_compute: azureml:cpu-cluster
+  default_compute: azureml:sample-managed-id-cluster
   continue_on_step_failure: false
 
 jobs:
@@ -25,54 +25,20 @@ jobs:
     type: command
     code: ../code/merge_data
     command: >-
-      python merge_data.py
-      --raw_data_green ${{inputs.raw_data_green}}
-      --raw_data_yellow ${{inputs.raw_data_yellow}}
-      --merged_data ${{outputs.merged_data}}
+      python test.py
+      --raw_data_train ${{inputs.raw_data_train}}
+      --raw_data_val ${{inputs.raw_data_val}}
+      --processed_data ${{outputs.processed_data}}
     inputs:
-      raw_data_green:
+      raw_data_train:
         type: uri_file 
-        path: azureml:green-taxi-raw:1
-      raw_data_yellow:
+        path: azureml:intent_class_train@latest
+      raw_data_val:
         type: uri_file 
-        path: azureml://subscriptions//resourcegroups//workspaces//datastores//paths/Datasets/yellowTaxiData.csv
+        path: azureml:intent_class_validation@latest
     outputs:
-      merged_data:
+      processed_data:
         mode: upload
-    environment: azureml:AzureML-sklearn-1.0-ubuntu20.04-py38-cpu@latest
-
-  transform_job:
-    type: command
-    component: ../code/components/transform.yaml
-    inputs:
-      clean_data: ${{parent.jobs.merge_job.outputs.merged_data}}
-    outputs:
-      transformed_data: 
-
-  train_job:
-    type: command
-    component: azureml:train_linear_regression_model@latest
-    inputs:
-      training_data: ${{parent.jobs.transform_job.outputs.transformed_data}}
-      test_split_ratio: 0.3
-    outputs:
-      model_output: ${{parent.outputs.pipeline_job_trained_model}}
-      test_data: 
-  
-  predict_job:
-    type: command
-    component: ../code/components/predict.yaml
-    inputs:
-      model_input: ${{parent.jobs.train_job.outputs.model_output}}
-      test_data: ${{parent.jobs.train_job.outputs.test_data}}
-    outputs:
-      predictions: ${{parent.outputs.pipeline_job_predictions}}
-
-  score_job:
-    type: command
-    component: ../code/components/score.yaml
-    inputs:
-      predictions: ${{parent.jobs.predict_job.outputs.predictions}}
-      model: ${{parent.jobs.train_job.outputs.model_output}}
-    outputs:
-      score_report: ${{parent.outputs.pipeline_job_score_report}}
+    environment:
+      image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:20240304.v1
+      conda_file: ../environments/conda.yaml
