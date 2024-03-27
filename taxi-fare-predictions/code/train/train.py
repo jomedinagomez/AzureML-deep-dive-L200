@@ -8,6 +8,28 @@ from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 import mlflow
 
+# Import required libraries
+import os
+from azure.identity import DefaultAzureCredential
+from azure.identity import AzureCliCredential
+from azure.ai.ml import automl, Input, MLClient, command
+
+from azure.ai.ml.constants import AssetTypes
+from azure.ai.ml.entities import Data
+from azure.ai.ml.automl import (
+    classification,
+    ClassificationPrimaryMetrics,
+    ClassificationModels,
+)
+
+from azure.identity import DefaultAzureCredential
+
+credential = DefaultAzureCredential()
+# Check if given credential can get token successfully.
+credential.get_token("https://management.azure.com/.default")
+
+ml_client = MLClient.from_config(credential=credential)
+
 mlflow.sklearn.autolog()
 
 parser = argparse.ArgumentParser("train")

@@ -17,7 +17,7 @@ outputs:
 
 settings:
   default_datastore: azureml:workspaceblobstore
-  default_compute: azureml:cpu-cluster
+  default_compute: azureml:cpu-cluster-lg
   continue_on_step_failure: false
 
 jobs:
@@ -35,7 +35,7 @@ jobs:
         path: azureml:green-taxi-raw:1
       raw_data_yellow:
         type: uri_file 
-        path: azureml://subscriptions//resourcegroups//workspaces//datastores//paths/Datasets/yellowTaxiData.csv
+        path: azureml:yellow-taxi-raw:1
     outputs:
       merged_data:
         mode: upload
